@@ -1,0 +1,14 @@
+# Ignore build artifacts 
+out/
+cache/
+
+# Ignore the thousands of library files (solmate, forge-std, etc.)
+lib/
+**/lib/
+
+# Ignore sensitive secrets
+.env
+.env.encrypted
+
+# Ignore OS-specific files
+.DS_Store
