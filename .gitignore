@@ -12,3 +12,10 @@ lib/
 
 # Ignore OS-specific files
 .DS_Store
+anvil-zksync.log
+**/anvil-zksync.log
+broadcast/
+foundryup-zksync
+zkout/
+**/broadcast/
+**/broadcast/
