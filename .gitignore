@@ -19,3 +19,5 @@ foundryup-zksync
 zkout/
 **/broadcast/
 **/broadcast/
+foundryup-zksync
+anvil-zksync.log
