@@ -51,7 +51,7 @@ function getAnvilEthConfig() public returns (NetworkConfig memory) {
     vm.stopBroadcast();
 
     // 3. Return the config
-    NetworkConfig  anvilConfig = NetworkConfig({
+    NetworkConfig memory anvilConfig = NetworkConfig({
         priceFeed: address(mockPriceFeed)
     });
     return anvilConfig;
