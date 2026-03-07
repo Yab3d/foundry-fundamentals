@@ -1,0 +1,237 @@
+========================================================
+EXPLANATION: getVersion() FUNCTION
+========================================================
+
+Function Code:
+
+function getVersion() public view returns (uint256) {
+    return s_priceFeed.version();
+}
+
+PURPOSE
+-------
+The getVersion() function retrieves the version number of the
+Chainlink price feed contract that this contract is connected to.
+
+This helps verify that the contract is interacting with the
+correct Chainlink oracle implementation.
+
+
+FUNCTION BREAKDOWN
+------------------
+
+1. function getVersion()
+
+Defines a function named "getVersion".
+
+
+2. public
+
+This means the function can be called by:
+
+- external users (wallets)
+- other smart contracts
+
+
+3. view
+
+The view keyword means the function does NOT modify blockchain state.
+
+It only reads data from the blockchain.
+
+Advantages:
+
+- no gas cost when called locally
+- safe read-only operation
+
+
+4. returns (uint256)
+
+The function returns an unsigned 256-bit integer.
+
+
+5. return s_priceFeed.version();
+
+This calls the version() function from the Chainlink price feed
+contract and returns its value.
+
+Earlier in the contract we defined:
+
+AggregatorV3Interface private s_priceFeed;
+
+This means the contract interacts with a Chainlink oracle
+through its interface.
+
+
+EXECUTION FLOW
+--------------
+
+User calls getVersion()
+        |
+        v
+FundMe contract executes
+        |
+        v
+FundMe calls Chainlink price feed contract
+        |
+        v
+Chainlink returns its version number
+        |
+        v
+FundMe returns the version to the user
+
+
+Example Output:
+
+4
+
+This means the Chainlink price feed contract version is 4.
+
+
+
+========================================================
+EXPLANATION: onlyOwner MODIFIER
+========================================================
+
+Modifier Code:
+
+modifier onlyOwner() {
+    if (msg.sender != i_owner) revert NotOwner();
+    _;
+}
+
+PURPOSE
+-------
+The onlyOwner modifier restricts access so that ONLY the
+contract owner can execute certain functions.
+
+This is commonly used to protect sensitive operations like:
+
+- withdrawing funds
+- changing contract configuration
+- upgrading contract parameters
+
+
+MODIFIER BREAKDOWN
+------------------
+
+
+1. modifier onlyOwner()
+
+Defines a reusable modifier called "onlyOwner".
+
+
+2. Ownership Check
+
+if (msg.sender != i_owner) revert NotOwner();
+
+
+Important variables:
+
+msg.sender
+-----------
+The address that called the function.
+
+Example:
+0xABC123
+
+
+i_owner
+-------
+The address of the contract owner.
+
+It is set when the contract is deployed.
+
+Example:
+
+constructor(address priceFeed) {
+    i_owner = msg.sender;
+}
+
+So the deployer becomes the owner.
+
+
+3. Custom Error
+
+revert NotOwner();
+
+If the caller is NOT the owner,
+the transaction stops immediately.
+
+
+4. The "_" Symbol
+
+_;
+
+This is VERY important.
+
+It represents where the function using the modifier will execute.
+
+Think of it like this:
+
+Run modifier checks
+        |
+        v
+If valid -> execute function
+
+
+
+EXAMPLE USAGE
+-------------
+
+function withdraw() public onlyOwner {
+
+Execution Flow:
+
+User calls withdraw()
+        |
+        v
+onlyOwner modifier runs
+        |
+        v
+Check if msg.sender == i_owner
+        |
+   +----+----+
+   |         |
+   v         v
+Owner     Not Owner
+   |         |
+   v         v
+Run       Revert
+Function  NotOwner()
+
+
+WHY CUSTOM ERRORS ARE USED
+--------------------------
+
+Instead of writing:
+
+require(msg.sender == i_owner, "Not owner");
+
+The contract uses:
+
+revert NotOwner();
+
+Advantages:
+
+- cheaper gas
+- cleaner code
+- modern Solidity practice
+
+
+
+========================================================
+CORE CONCEPTS LEARNED
+========================================================
+
+From these two pieces of code we learned:
+
+- View functions
+- External contract interaction
+- Chainlink oracle usage
+- Modifiers
+- Ownership access control
+- Custom errors
+
+These patterns appear in almost every professional
+smart contract system.
