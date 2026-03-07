@@ -1,0 +1,281 @@
+========================================================
+EXPLANATION: withdraw() FUNCTION
+========================================================
+
+Function Code:
+
+function withdraw() public onlyOwner {
+    for (uint256 funderIndex = 0; funderIndex < funders.length; funderIndex++) {
+        address funder = funders[funderIndex];
+        addressToAmountFunded[funder] = 0;
+    }
+
+    funders = new address;
+
+    (bool callSuccess,) = payable(msg.sender).call{value: address(this).balance}("");
+    require(callSuccess, "Call failed");
+}
+
+
+PURPOSE
+-------
+The withdraw() function allows the contract owner to withdraw
+all ETH stored in the contract.
+
+During withdrawal the contract also resets all funding records
+so the contract can start a new funding round.
+
+
+ACCESS CONTROL
+--------------
+
+The function uses the modifier:
+
+onlyOwner
+
+This means ONLY the contract owner can execute this function.
+
+Execution flow:
+
+User calls withdraw()
+        |
+        v
+onlyOwner modifier runs
+        |
+        v
+Check:
+msg.sender == i_owner ?
+        |
+   +----+----+
+   |         |
+   v         v
+TRUE      FALSE
+   |         |
+   v         v
+continue   revert NotOwner()
+
+
+CONTRACT STATE BEFORE WITHDRAW
+------------------------------
+
+Example situation:
+
+Funders:
+A -> 1 ETH
+B -> 2 ETH
+C -> 0.5 ETH
+
+Stored Mapping:
+
+addressToAmountFunded[A] = 1 ETH
+addressToAmountFunded[B] = 2 ETH
+addressToAmountFunded[C] = 0.5 ETH
+
+Funders Array:
+
+funders = [A, B, C]
+
+Contract Balance:
+
+3.5 ETH
+
+
+STEP 1: LOOP THROUGH FUNDERS
+----------------------------
+
+Code:
+
+for (uint256 funderIndex = 0; funderIndex < funders.length; funderIndex++)
+
+This loop iterates through every address stored in the funders array.
+
+
+Example Iteration:
+
+Iteration 1
+funderIndex = 0
+funder = A
+
+Iteration 2
+funderIndex = 1
+funder = B
+
+Iteration 3
+funderIndex = 2
+funder = C
+
+
+STEP 2: RESET FUNDING AMOUNTS
+------------------------------
+
+Code:
+
+addressToAmountFunded[funder] = 0;
+
+
+This resets each funder's recorded contribution.
+
+
+Before reset:
+
+addressToAmountFunded[A] = 1 ETH
+addressToAmountFunded[B] = 2 ETH
+addressToAmountFunded[C] = 0.5 ETH
+
+
+After reset:
+
+addressToAmountFunded[A] = 0
+addressToAmountFunded[B] = 0
+addressToAmountFunded[C] = 0
+
+
+STEP 3: RESET FUNDERS ARRAY
+---------------------------
+
+Code:
+
+funders = new address;
+
+
+This creates a new empty array.
+
+
+Before:
+
+funders = [A, B, C]
+
+
+After:
+
+funders = []
+
+
+This prepares the contract for a new funding cycle.
+
+
+STEP 4: SEND ETH TO OWNER
+-------------------------
+
+Code:
+
+(bool callSuccess,) = payable(msg.sender).call{value: address(this).balance}("");
+
+
+Explanation:
+
+address(this).balance
+
+This represents the total ETH stored in the contract.
+
+
+Example:
+
+Contract balance = 3.5 ETH
+
+
+The contract sends ALL ETH to the owner.
+
+
+Transfer Flow:
+
+Contract
+   |
+   | send ETH
+   v
+Owner Wallet
+
+
+STEP 5: VERIFY TRANSFER SUCCESS
+-------------------------------
+
+Code:
+
+require(callSuccess, "Call failed");
+
+
+If the ETH transfer fails:
+
+Transaction REVERTS.
+
+
+FULL EXECUTION FLOW
+-------------------
+
+Funders send ETH
+        |
+        v
+Contract stores ETH
+        |
+        v
+Contract balance increases
+        |
+        v
+Owner calls withdraw()
+        |
+        v
+onlyOwner modifier verifies owner
+        |
+        v
+Loop resets all funder balances
+        |
+        v
+Clear funders array
+        |
+        v
+Send ALL ETH to owner
+
+
+CONTRACT STATE AFTER WITHDRAW
+-----------------------------
+
+Contract Balance:
+
+0 ETH
+
+
+Funders Array:
+
+[]
+
+
+Mapping:
+
+addressToAmountFunded[A] = 0
+addressToAmountFunded[B] = 0
+addressToAmountFunded[C] = 0
+
+
+IMPORTANT CONCEPTS LEARNED
+--------------------------
+
+From this function we learn:
+
+- Ownership protection using modifiers
+- Iterating through arrays with loops
+- Resetting mappings
+- Resetting dynamic arrays
+- Sending ETH from a contract
+- Low-level call() usage
+- Contract balance access
+- Secure withdraw patterns
+
+
+SECURITY PATTERN
+----------------
+
+This function follows a known Solidity security pattern:
+
+Checks
+Effects
+Interactions
+
+
+Order:
+
+1. Check ownership
+2. Update contract state
+3. Interact with external address (send ETH)
+
+
+This pattern helps reduce reentrancy risks.
