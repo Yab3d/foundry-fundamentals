@@ -1,0 +1,185 @@
+========================================================
+EXPLANATION: PriceConverter.getPrice() FUNCTION
+========================================================
+
+Code:
+
+library PriceConverter {
+
+function getPrice(
+    AggregatorV3Interface priceFeed
+) internal view returns (uint256) {
+
+    (, int256 answer, , , ) = priceFeed.latestRoundData();
+
+    return uint256(answer * 10000000000);
+}
+
+
+PURPOSE
+-------
+
+This function retrieves the current ETH/USD price from the
+Chainlink price feed and converts it into a format usable
+inside Solidity calculations.
+
+
+LIBRARY CONCEPT
+---------------
+
+PriceConverter is a Solidity library.
+
+Libraries act as reusable helper modules that provide
+utility functions for contracts.
+
+Example structure:
+
+FundMe Contract
+        |
+        v
+Uses helper functions
+        |
+        v
+PriceConverter Library
+
+
+FUNCTION SIGNATURE
+------------------
+
+function getPrice(
+    AggregatorV3Interface priceFeed
+) internal view returns (uint256)
+
+
+internal
+--------
+
+The function can only be used inside the contract
+or by contracts that import this library.
+
+
+view
+----
+
+The function does not modify blockchain state.
+
+It only reads external data from the Chainlink oracle.
+
+
+PRICE FEED INPUT
+----------------
+
+AggregatorV3Interface priceFeed
+
+This is the Chainlink price feed contract used to
+retrieve ETH/USD price information.
+
+
+GETTING PRICE DATA
+------------------
+
+Code:
+
+(, int256 answer, , , ) = priceFeed.latestRoundData();
+
+
+latestRoundData() returns five values:
+
+1. roundId
+2. answer (price)
+3. startedAt
+4. updatedAt
+5. answeredInRound
+
+
+Only the price value is needed, so the other
+values are ignored using commas.
+
+
+Example return values:
+
+roundId          = 1234
+answer (price)   = 200000000000
+startedAt        = timestamp
+updatedAt        = timestamp
+answeredInRound  = 1234
+
+
+DECIMAL HANDLING
+----------------
+
+Chainlink price feeds use 8 decimal places.
+
+Example:
+
+ETH price = $2000
+
+Returned value:
+
+2000 * 10^8
+= 200000000000
+
+
+However Solidity ETH calculations usually use
+18 decimal precision.
+
+
+DECIMAL CONVERSION
+------------------
+
+Code:
+
+return uint256(answer * 10000000000);
+
+
+This converts the price from:
+
+8 decimals -> 18 decimals
+
+
+Calculation:
+
+10^8 * 10^10 = 10^18
+
+
+Example:
+
+Chainlink price:
+200000000000
+
+Adjusted price:
+2000000000000000000000
+
+
+EXECUTION FLOW
+--------------
+
+FundMe contract needs ETH price
+        |
+        v
+Calls PriceConverter.getPrice()
+        |
+        v
+Library calls Chainlink price feed
+        |
+        v
+Chainlink returns ETH/USD price
+        |
+        v
+Library adjusts decimal precision
+        |
+        v
+Returns price in 18 decimal format
+
+
+CONCEPTS LEARNED
+----------------
+
+From this function we learn:
+
+- Solidity libraries
+- Chainlink oracle interaction
+- External contract calls
+- Multiple return values
+- Decimal precision adjustments
+- Type conversion (int256 -> uint256)
