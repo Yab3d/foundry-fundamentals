@@ -1,0 +1,280 @@
+========================================================
+FUNCTION: getAnvilEthConfig()
+========================================================
+
+Function Code
+-------------
+
+function getAnvilEthConfig() public returns (NetworkConfig memory) {
+    // 1. Check if we already deployed this (prevents wasting gas/memory)
+    if (activeNetworkConfig.priceFeed != address(0)) {
+        return activeNetworkConfig;
+    }
+
+    // 2. Deploy the mock
+    vm.startBroadcast();
+    MockV3Aggregator mockPriceFeed = new MockV3Aggregator(DECIMALS, INITIAL_PRICE);
+    vm.stopBroadcast();
+
+    // 3. Return the config
+    NetworkConfig memory anvilConfig = NetworkConfig({
+        priceFeed: address(mockPriceFeed)
+    });
+    return anvilConfig;
+}
+
+
+========================================================
+PURPOSE OF THIS FUNCTION
+========================================================
+
+This function creates and returns the configuration used
+when running the smart contracts on a local blockchain
+environment called ANVIL.
+
+Because Anvil does not have real Chainlink price feeds,
+we must deploy a MOCK oracle to simulate the ETH/USD price.
+
+
+========================================================
+THE PROBLEM THIS FUNCTION SOLVES
+========================================================
+
+FundMe requires a Chainlink price feed:
+
+AggregatorV3Interface priceFeed
+
+On real networks like Sepolia or Mainnet, Chainlink
+already deploys these price feeds.
+
+Example:
+
+ETH/USD Price Feed (Sepolia)
+
+But on a local blockchain (Anvil), no oracle exists.
+
+Therefore we must deploy a mock contract that behaves
+like a Chainlink oracle.
+
+That mock contract is:
+
+MockV3Aggregator
+
+
+========================================================
+STEP 1: FUNCTION DEFINITION
+========================================================
+
+function getAnvilEthConfig() public returns (NetworkConfig memory)
+
+This function returns a struct called NetworkConfig.
+
+Example struct:
+
+struct NetworkConfig {
+    address priceFeed;
+}
+
+So the function returns something like:
+
+NetworkConfig({
+    priceFeed: 0xABC123...
+})
+
+
+========================================================
+STEP 2: CHECK IF PRICE FEED ALREADY EXISTS
+========================================================
+
+if (activeNetworkConfig.priceFeed != address(0)) {
+    return activeNetworkConfig;
+}
+
+address(0) means:
+
+0x0000000000000000000000000000000000000000
+
+This is the "empty" Ethereum address.
+
+Meaning:
+
+If the priceFeed address is NOT empty,
+then we already deployed the mock oracle.
+
+So instead of redeploying, we return the existing one.
+
+This prevents:
+
+- unnecessary contract deployment
+- gas waste
+- memory usage
+
+
+========================================================
+STEP 3: START BROADCASTING TRANSACTIONS
+========================================================
+
+vm.startBroadcast();
+
+This is a Foundry cheatcode.
+
+It tells Foundry:
+
+"The next actions should be sent as transactions
+to the blockchain."
+
+Without this line the deployment would only run
+as a simulation.
+
+
+========================================================
+STEP 4: DEPLOY MOCK PRICE FEED
+========================================================
+
+MockV3Aggregator mockPriceFeed =
+    new MockV3Aggregator(DECIMALS, INITIAL_PRICE);
+
+This deploys a fake Chainlink oracle.
+
+Parameters:
+
+DECIMALS = 8
+INITIAL_PRICE = 2000e8
+
+Meaning:
+
+ETH price = $2000
+
+Now the local blockchain has a contract that behaves
+like a real ETH/USD price feed.
+
+
+========================================================
+STEP 5: STOP BROADCASTING
+========================================================
+
+vm.stopBroadcast();
+
+This ends the transaction broadcast session.
+
+Only the deployment transaction is executed.
+
+
+========================================================
+STEP 6: CREATE NETWORK CONFIGURATION
+========================================================
+
+NetworkConfig memory anvilConfig = NetworkConfig({
+    priceFeed: address(mockPriceFeed)
+});
+
+This creates a configuration object.
+
+Example result:
+
+NetworkConfig
+{
+    priceFeed: 0xABC123...
+}
+
+This tells the system which oracle address
+should be used on the local network.
+
+
+========================================================
+STEP 7: RETURN CONFIGURATION
+========================================================
+
+return anvilConfig;
+
+Now other scripts can use this configuration.
+
+Example:
+
+DeployFundMe.s.sol
+
+will call this function and pass the returned
+priceFeed address into the FundMe constructor.
+
+
+========================================================
+FULL EXECUTION FLOW
+========================================================
+
+Deployment Script
+        │
+        ▼
+getAnvilEthConfig()
+        │
+        ├── Check if price feed already exists
+        │
+        ├── YES → return existing config
+        │
+        └── NO
+             │
+             ▼
+      Deploy MockV3Aggregator
+             │
+             ▼
+      Create NetworkConfig
+             │
+             ▼
+      Return priceFeed address
+
+
+========================================================
+HOW THIS CONNECTS TO FUNDME
+========================================================
+
+Deploy Script
+      │
+      ▼
+HelperConfig.getAnvilEthConfig()
+      │
+      ▼
+Returns priceFeed address
+      │
+      ▼
+FundMe constructor receives it
+
+Example:
+
+FundMe(priceFeed)
+
+
+========================================================
+PROFESSIONAL ARCHITECTURE
+========================================================
+
+Deployment Script
+        │
+        ▼
+HelperConfig Contract
+        │
+        ├── Sepolia Configuration
+        │
+        └── Anvil Configuration
+                │
+                ▼
+        Deploy Mock Oracle
+                │
+                ▼
+        Return Oracle Address
+                │
+                ▼
+        FundMe Contract
+
+
+========================================================
+KEY CONCEPTS LEARNED
+========================================================
+
+From this function we learn:
+
+- Network configuration management
+- Oracle mocking for local development
+- Contract deployment inside scripts
+- Foundry cheatcodes (vm.startBroadcast)
+- Gas optimization patterns
+- Returning structs from functions
+- Dependency injection for smart contracts
