@@ -45,4 +45,29 @@ contract FundMeTest is Test {
         uint256 amountFunded = fundme.getAddressToAmountFunded(USER);
         assertEq(amountFunded, SEND_VALUE);
     }
+
+    function testAddsFunderToArrayOfFunders() public {
+        vm.prank(USER);
+        fundme.fund{value: SEND_VALUE}();
+        address funder = fundme.getFunded(0);
+        assertEq(funder, USER);
+    }
+
+    modifier funded() {
+        vm.prank(USER);
+        fundme.fund{value: SEND_VALUE}();
+        _;
+    }
+
+    function testOnlyOwnerCanWithdraw() public funded {
+        vm.prank(USER);
+        vm.expectRevert();
+        fundme.withdraw();
+    }
+
+    function testWithDrawWithASingleFunder() public funded {
+        //assert
+        //arrange
+        //act
+    }
 }
