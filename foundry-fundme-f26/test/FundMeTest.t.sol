@@ -84,4 +84,31 @@ contract FundMeTest is Test {
             endingownerbalance
         );
     }
+
+    function testWithdrawFromMultipleFunders() public funded {
+        // Arrange
+        uint160 numberOfFunders = 10;
+        uint160 startingFunderIndex = 1;
+
+        for (uint160 i = startingFunderIndex; i < numberOfFunders; i++) {
+            // hoax does vm.prank + vm.deal
+            hoax(address(i), SEND_VALUE);
+            fundme.fund{value: SEND_VALUE}();
+        }
+
+        uint256 startingOwnerBalance = fundme.getOwner().balance;
+        uint256 startingFundMeBalance = address(fundme).balance;
+
+        // Act
+        vm.startPrank(fundme.getOwner());
+        fundme.withdraw();
+        vm.stopPrank();
+
+        // Assert
+        assert(address(fundme).balance == 0);
+        assert(
+            startingFundMeBalance + startingOwnerBalance ==
+                fundme.getOwner().balance
+        );
+    }
 }
