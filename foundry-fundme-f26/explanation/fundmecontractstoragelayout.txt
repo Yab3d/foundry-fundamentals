@@ -1,0 +1,94 @@
+========================================================
+FUNDME CONTRACT STORAGE LAYOUT
+========================================================
+Command Used:
+forge inspect FundMe storageLayout
+
+Purpose:
+- Shows how Solidity stores your contract state variables in the blockchain.
+- Useful for:
+  - Upgradable contracts
+  - Gas optimization
+  - Debugging storage issues
+
+--------------------------------------------------------
+Storage Layout Output:
+
+| Name                    | Type                           | Slot | Offset | Bytes | Contract              |
++==========================================================================================================+
+| s_addressToAmountFunded | mapping(address => uint256)    | 0    | 0      | 32    | src/FundMe.sol:FundMe |
+| s_funders               | address[]                      | 1    | 0      | 32    | src/FundMe.sol:FundMe |
+| s_priceFeed             | contract AggregatorV3Interface | 2    | 0      | 20    | src/FundMe.sol:FundMe |
+
+--------------------------------------------------------
+1️⃣ s_addressToAmountFunded (mapping)
+
+- Type: mapping(address => uint256)
+- Slot: 0
+- Bytes: 32
+
+Explanation:
+- Each key (address) is stored at a **hash of (key + slot)**.
+- Mappings are not sequential; Solidity computes storage location using hashing.
+- Example:
+  Slot 0 → mapping "s_addressToAmountFunded"
+  address A → hash(A, 0) → stores uint256
+  address B → hash(B, 0) → stores uint256
+
+--------------------------------------------------------
+2️⃣ s_funders (dynamic array)
+
+- Type: address[]
+- Slot: 1
+- Bytes: 32
+
+Explanation:
+- Slot 1 stores the **length** of the array.
+- Elements are stored at:
+  keccak256(slot) + index
+- Example:
+  Slot 1 → funders.length
+  keccak256(1) + 0 → funders[0]
+  keccak256(1) + 1 → funders[1]
+
+--------------------------------------------------------
+3️⃣ s_priceFeed (contract address)
+
+- Type: contract AggregatorV3Interface
+- Slot: 2
+- Bytes: 20
+
+Explanation:
+- Solidity stores addresses as 20 bytes.
+- This slot stores the **address of the Chainlink price feed contract**.
+
+--------------------------------------------------------
+💡 Key Takeaways:
+
+1. Each state variable has a unique storage slot.
+2. Mappings are stored at hash(key + slot), not sequentially.
+3. Dynamic arrays store length in their slot; elements at keccak256(slot)+index.
+4. uint256 occupies 32 bytes, address occupies 20 bytes.
+5. Understanding storage layout is essential for:
+   - Gas optimization
+   - Proxy contracts (upgradability)
+   - Debugging storage/state issues
+
+--------------------------------------------------------
+Visual Diagram:
+
+Slot 0: s_addressToAmountFunded (mapping)
+    Key: Address → Hash(slot+key) → uint256
+
+Slot 1: s_funders (dynamic array)
+    Slot 1 → length of array
+    keccak256(1) + 0 → funders[0]
+    keccak256(1) + 1 → funders[1]
+    ...
+
+Slot 2: s_priceFeed (address)
+    Slot 2 → 20 bytes → Chainlink price feed contract address
+
+========================================================
+End of Storage Layout Explanation
+========================================================
