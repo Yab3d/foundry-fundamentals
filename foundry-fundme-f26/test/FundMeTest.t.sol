@@ -114,16 +114,10 @@ contract FundMeTest is Test {
         );
     }
 
-    f function testGasWithdraw() public {
+    function testGasWithdraw() public {
         // Fund the contract
-        fundMe.fund{value: 1 ether}();
-
-        // Measure gas
-        uint256 gasStart = gasleft();
-        fundMe.withdraw();
-        uint256 gasEnd = gasleft();
-
-        uint256 gasUsed = gasStart - gasEnd;
-        console.log("Gas used for withdraw():", gasUsed);
+        fundme.fund{value: 1 ether}();
+        vm.startPrank(fundme.getOwner());
+        fundme.withdraw();
     }
 }
