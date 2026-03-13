@@ -1,0 +1,226 @@
+========================================================
+FOUNDRY / FORGE CHEAT SHEET
+========================================================
+Purpose: Quick reference for testing, deploying, and debugging Solidity contracts using Foundry.
+
+-----------------------------
+1️⃣ Basic Forge Commands
+-----------------------------
+
+# Compile your project
+forge build
+
+# Run all tests
+forge test
+
+# Run a single test file
+forge test --match-path test/MyContract.t.sol
+
+# Run a single test function
+forge test --match-test "testFunctionName"
+
+# Run tests with gas report
+forge test --gas-report
+
+# Clean build artifacts
+forge clean
+
+# Deploy scripts
+forge script script/Deploy.s.sol --fork-url $RPC_URL --broadcast
+
+# Show help
+forge --help
+
+-----------------------------
+2️⃣ VM Cheatcodes (vm.*)
+-----------------------------
+The `vm` object allows manipulating EVM state in tests.
+
+1. **vm.startBroadcast() / vm.stopBroadcast()**
+- Purpose: Send transactions from scripts to real network or local fork
+- Example:
+
+vm.startBroadcast();
+MyContract mc = new MyContract();
+mc.doSomething();
+vm.stopBroadcast();
+
+2. **vm.prank(address)**
+- Purpose: Simulate msg.sender as a different address
+- Example:
+
+address alice = address(0x123);
+vm.prank(alice);
+myContract.deposit{value: 1 ether}();
+
+3. **vm.expectRevert(bytes)**
+- Purpose: Expect a transaction to fail
+- Example:
+
+vm.expectRevert(bytes("NotOwner"));
+myContract.withdraw();
+
+4. **vm.deal(address, uint256)**
+- Purpose: Set ETH balance of an address
+- Example:
+
+vm.deal(alice, 10 ether);
+
+5. **vm.warp(uint256 timestamp)**
+- Purpose: Fast forward blockchain time
+- Example:
+
+vm.warp(block.timestamp + 1 days);
+myContract.claimReward();
+
+6. **vm.roll(uint256 blockNumber)**
+- Purpose: Set block number
+- Example:
+
+vm.roll(block.number + 10);
+
+7. **vm.startPrank(address) / vm.stopPrank()**
+- Purpose: Start sending multiple transactions as an address
+- Example:
+
+vm.startPrank(alice);
+myContract.deposit{value: 1 ether}();
+myContract.withdraw();
+vm.stopPrank();
+
+8. **vm.expectEmit(bool checkTopic1, bool checkTopic2, bool checkTopic3, bool checkData)**
+- Purpose: Expect a specific event to be emitted
+- Example:
+
+vm.expectEmit(true, true, false, true);
+emit Funded(alice, 1 ether);
+myContract.fund{value: 1 ether}();
+
+9. **vm.mockCall(address, bytes calldata, bytes memory)**
+- Purpose: Mock contract calls (return custom data)
+- Example:
+
+vm.mockCall(
+    address(priceFeed),
+    abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
+    abi.encode(uint80(1), int256(2000e8), uint256(0), uint256(0), uint80(0))
+);
+
+10. **vm.recordLogs() / vm.getRecordedLogs()**
+- Purpose: Record all emitted events for testing
+- Example:
+
+vm.recordLogs();
+myContract.fund{value: 1 ether}();
+Vm.Log[] memory logs = vm.getRecordedLogs();
+
+11. **vm.assume(condition)**
+- Purpose: Assume certain conditions for fuzz testing
+- Example:
+
+function testDeposit(uint256 amount) public {
+    vm.assume(amount > 0 && amount < 100 ether);
+    myContract.deposit{value: amount}();
+}
+
+12. **vm.setNonce(address, uint256)**
+- Purpose: Set transaction nonce for an address
+- Example:
+
+vm.setNonce(alice, 5);
+
+13. **vm.createSelectFork(string memory url, uint256 blockNumber)**
+- Purpose: Fork a network at a specific block
+- Example:
+
+uint256 forkId = vm.createSelectFork("https://eth-sepolia.g.alchemy.com/v2/KEY", 5000000);
+
+14. **vm.chainId(uint256)**
+- Purpose: Change chain id in tests
+- Example:
+
+vm.chainId(11155111); // Sepolia
+
+-----------------------------
+3️⃣ Ether & Token Utilities
+-----------------------------
+
+# Sending ETH in tests
+myContract.deposit{value: 1 ether}();
+
+# Checking balances
+uint256 balance = address(alice).balance;
+
+# Token minting (ERC20)
+token.mint(alice, 1000 * 1e18);
+
+-----------------------------
+4️⃣ Useful Fuzzing Features
+-----------------------------
+
+# Fuzz test with random input
+function testDepositFuzz(uint256 amount) public {
+    vm.assume(amount > 0 && amount < 10 ether);
+    myContract.deposit{value: amount}();
+}
+
+# Test events with fuzz
+function testFundEvent(uint256 amount) public {
+    vm.assume(amount > 0 && amount < 10 ether);
+    vm.expectEmit(true, true, false, true);
+    emit Funded(address(this), amount);
+    myContract.fund{value: amount}();
+}
+
+-----------------------------
+5️⃣ Time & Block Manipulation
+-----------------------------
+
+# Move time forward
+vm.warp(block.timestamp + 1 days);
+
+# Move blocks forward
+vm.roll(block.number + 10);
+
+# Combine both
+vm.warp(block.timestamp + 1 days);
+vm.roll(block.number + 1);
+
+-----------------------------
+6️⃣ Event Testing
+-----------------------------
+
+# Expect event
+vm.expectEmit(true, true, false, true);
+emit Withdrawn(msg.sender, 1 ether);
+myContract.withdraw();
+
+# Check logs manually
+vm.recordLogs();
+myContract.fund{value: 1 ether}();
+Vm.Log[] memory logs = vm.getRecordedLogs();
+
+-----------------------------
+7️⃣ Deployment in Scripts
+-----------------------------
+
+vm.startBroadcast();
+FundMe fundMe = new FundMe(priceFeedAddress);
+vm.stopBroadcast();
+
+# Deploy with forking
+forge script script/DeployFundMe.s.sol --fork-url $SEPOLIA_RPC_URL --broadcast
+
+-----------------------------
+8️⃣ Debugging Tips
+-----------------------------
+
+- Use `console.log` (import "forge-std/console.sol") to print variables
+- Use `vm.expectRevert` to test reverts
+- Use `vm.deal` to simulate ETH balances
+- Use `vm.prank` for impersonating addresses
+- Use `vm.warp` and `vm.roll` for testing time-dependent logic
+
+========================================================
+End of Foundry / Forge Cheat Sheet
+========================================================

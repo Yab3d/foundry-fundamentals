@@ -1,0 +1,67 @@
+========================================================
+GAS USAGE MEASUREMENT IN FOUNDRY TESTS
+========================================================
+
+Code:
+
+//Act
+uint256 gasStart = gasLeft();
+vm.txGasPrice(GAS_PRICE);
+vm.prank(fundme.getOwner());
+fundme.withdraw();
+uint256 gasEnd = gasLeft();
+uint256 gasUsed = (gasStart - gasEnd) * tx.gasprice;
+console.log(gasUsed);
+
+--------------------------------------------------------
+Line-by-Line Explanation:
+
+1. uint256 gasStart = gasLeft();
+   - Stores remaining gas before function call.
+
+2. vm.txGasPrice(GAS_PRICE);
+   - Sets the transaction gas price for the next call.
+
+3. vm.prank(fundme.getOwner());
+   - Impersonates the owner of the contract for the next transaction.
+
+4. fundme.withdraw();
+   - Calls the withdraw() function as the owner.
+
+5. uint256 gasEnd = gasLeft();
+   - Stores remaining gas after function call.
+
+6. uint256 gasUsed = (gasStart - gasEnd) * tx.gasprice;
+   - Calculates the total ETH spent on gas in wei.
+
+7. console.log(gasUsed);
+   - Prints the gas cost in the test logs.
+
+--------------------------------------------------------
+Conceptual Flow:
+
+[Start Test]
+    |
+    v
+Get initial gas -> gasStart
+    |
+Set transaction gas price -> GAS_PRICE
+    |
+Prank as contract owner
+    |
+Call fundme.withdraw()
+    |
+Get remaining gas -> gasEnd
+    |
+Calculate gas used: (gasStart - gasEnd) * tx.gasprice
+    |
+Print gasUsed
+[End Test]
+
+--------------------------------------------------------
+Why It’s Useful:
+
+- Helps optimize gas usage of smart contract functions.
+- Useful in tests to compare different implementations.
+- Can be combined with fuzzing to see gas changes with input.
+========================================================

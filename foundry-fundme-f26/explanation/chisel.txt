@@ -1,0 +1,139 @@
+========================================================
+CHISEL & SOLIDITY VARIABLE EXPLANATION
+========================================================
+
+1️⃣ What is Chisel?
+
+Chisel is a Solidity REPL (Read–Eval–Print Loop) tool included with Foundry.
+
+A REPL allows you to:
+- Write Solidity code
+- Execute it immediately
+- See the result instantly
+
+Example Chisel session:
+
+➜ chisel
+➜ uint256 x = 10
+➜ uint256 y = x + 5
+➜ y
+Type: uint256
+├ Hex: 0x0f
+└ Decimal: 15
+
+Use cases:
+- Testing Solidity math
+- Understanding types
+- Learning EVM behavior
+- Debugging calculations
+
+---
+
+2️⃣ Understanding Your Error
+
+Code:
+
+uint256 yabAndThree = yab + 3;
+
+Error:
+
+Error (7576): Undeclared identifier.
+yab
+
+Reason:
+- Solidity does not know what "yab" is.
+- Variables must be declared before use.
+
+---
+
+3️⃣ Correct Way
+
+First declare `yab`:
+
+uint256 yab = 7;
+
+Then use it:
+
+uint256 yabAndThree = yab + 3;
+
+Check the value:
+
+yabAndThree
+Output: 10
+
+---
+
+4️⃣ Explanation of the Code
+
+uint256 yabAndThree = yab + 3;
+
+Breakdown:
+
+uint256
+│  256-bit unsigned integer
+
+yabAndThree
+│  Variable name
+
+yab + 3
+│  Add 3 to value stored in yab
+
+Example:
+
+yab = 7
+yabAndThree = 7 + 3
+Result = 10
+
+---
+
+5️⃣ Visual Memory Model
+
+Memory
+
+yab ---------> 7
+                │
+                │ +3
+                ▼
+yabAndThree --> 10
+
+---
+
+6️⃣ Why Chisel Is Powerful
+
+- Test Solidity math
+- Convert addresses & types
+- Check type limits
+- Test gas-heavy functions
+- Check hash and keccak256 values
+
+Example:
+
+1 ether / 2
+address(1)
+type(uint256).max
+keccak256("hello")
+
+---
+
+7️⃣ Useful Chisel Commands
+
+Start Chisel:
+$ chisel
+
+Show help:
+!help
+
+Clear environment:
+!clear
+
+Exit:
+!exit
+
+---
+
+8️⃣ Pro Tip
+
+Chisel is one of the fastest ways to understand Solidity.
+- Instantly see computation results
+- Test math, addresses, and types
+- Verify small snippets before adding to contracts
